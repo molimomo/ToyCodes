@@ -14,7 +14,7 @@ class undirectedGraph{
     private: 
         int num;  // # of vertices
         list<int> *adj;
-        bool isCyclicUtil(int num, bool visited[], bool *rs);
+        bool isCyclicUtil(int num, vector<bool> &visited, vector<bool> &rs);
         void dfsHelp(int v, vector<bool> &visited);
 };
 
@@ -27,18 +27,34 @@ void undirectedGraph::addEdge(int src, int tar){
     adj[src].push_back(tar);
 }
 
-bool undirectedGraph::isCyclicUtil(int num, bool visited[], bool *rs){
+bool undirectedGraph::isCyclicUtil(int v, vector<bool> &visited, vector<bool> &rs){
+    if(visited[v] == false){
+        // Mark node v as visited and push it into recursion stack
+        visited[v] = true;
+        rs[v] = true;
+
+        // traverse all adjacent vertice of v
+        list<int>:: iterator it;
+        for(it=adj[v].begin();it!=adj[v].end();it++){
+            if(!visited[*it] && isCyclicUtil(*it, visited, rs))
+                return true;
+            else if(rs[*it])
+                return true;    
+        }
+    }
+    // remove the vetex from recursion stack
+    rs[v] = false;
     return false;    
 }
 
 bool undirectedGraph::isCyclic(){
-    bool *visited = new bool[num];
-    bool *recStack = new bool[num];
+    vector<bool> visited(num, false);
+    vector<bool> recStack(num, false);
     for(int i=0;i<num;i++){
-        visited[i] = false;
-        recStack[i] = false;
+        if(isCyclicUtil(i, visited, recStack))
+            return true;
     }
-    return isCyclicUtil(num, visited, recStack);
+    return false;
 }
 
 void undirectedGraph::dfsHelp(int v, vector<bool> &visited){
@@ -69,11 +85,13 @@ int main(){
     // DFS traversal
     cout<<"DFS traversal:"<<endl;
     myGraph->dfs(1);
+    cout<<endl;
 
     // Detect cycle
     if(myGraph->isCyclic())
         cout<<"Exists cycle!"<<endl;
-    cout<<"No cycle!"<<endl;
+    else 
+        cout<<"No cycle!"<<endl;
     
     return 0;
 }
